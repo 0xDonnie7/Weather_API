@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -15,6 +17,7 @@ type config struct {
 	port      int
 	env       string
 	redisAddr string
+	APIKey    string
 }
 
 type application struct {
@@ -25,9 +28,14 @@ type application struct {
 
 func main() {
 	var cfg config
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("error loading .env file")
+	}
+
 	flag.StringVar(&cfg.env, "env", "development", "development|staging|production")
 	flag.IntVar(&cfg.port, "port", 8080, "port-number")
-	flag.StringVar(&cfg.redisAddr, "redis-address", "localhost:8080", "Redis server address")
+	flag.StringVar(&cfg.redisAddr, "redis-address", "localhost:6379", "Redis server address")
+	flag.StringVar(&cfg.APIKey, "APIKey", os.Getenv("API_KEY"), "visualCrossing API key")
 
 	flag.Parse()
 
@@ -48,7 +56,7 @@ func main() {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	log.Printf("starting server on port %d (%s)", cfg.port, cfg.env)
+	log.Printf("starting server on port %d (%s)", cfg.port, cfg.APIKey)
 	err := srv.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
